@@ -1,5 +1,4 @@
 import random
-import time
 from copy import deepcopy
 
 import torch
@@ -93,6 +92,23 @@ class BlackJackUltimate:
             if not is_external:
                 self._board.update_field(self.dealer_score, [x[0] for x in self.dealer_cards if x[0] != ''], 0)
 
+    def change_ace_value(self, is_player=False):
+        deck = self.player_cards if is_player else self.dealer_cards
+
+        for i, card in enumerate(deck):
+            if card[0].startswith('ace') and card[1] == 11:
+                deck[i] = (card[0], 1)
+                break
+
+        if is_player:
+            self.player_cards = deck
+        else:
+            self.dealer_cards = deck
+
+        self.calculate_score(1 if is_player else 0)
+        self._board.update_score(self.player_score, 1)
+        self._board.update_score(self.dealer_score, 0)
+
     def reset(self, is_external=False):
         self.dealer_score = 0
         self.player_score = 0
@@ -129,14 +145,17 @@ class BlackJackUltimate:
         if action == 0:
             self.draw_card(True)
             if self.player_score > 21:
-                return self.get_state(), -5, True
+                self.change_ace_value(True)
+                if self.player_score > 21:
+                    return self.get_state(), -5, True
         else:
             while self.dealer_score < 21 or self.dealer_score < self.player_score:
                 self.draw_card(False)
                 if self.dealer_score > 21:
-                    return self.get_state(), 5, True
+                    self.change_ace_value(False)
+                    if self.dealer_score > 21:
+                        return self.get_state(), 5, True
                 if self.dealer_score >= self.player_score:
-                    current_state = self.get_state()
                     return self.get_state(), -5, True
 
         return self.get_state(), 0, False
