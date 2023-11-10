@@ -4,7 +4,9 @@ import matplotlib.pyplot as plt
 import torch
 
 from agents.dqn_agent import DQNAgent
+from agents.random_agent import RandomAgent
 from main import BlackJackUltimate
+from replay_manager import ReplayManager
 
 
 def plot_reward(show_result=False):
@@ -64,7 +66,7 @@ wins_o = []
 draws = []
 
 if torch.cuda.is_available():
-    num_episodes = 10000
+    num_episodes = 5
 else:
     num_episodes = 200
 
@@ -74,7 +76,7 @@ env = BlackJackUltimate(is_external=True)
 
 state = env.reset()
 agent = DQNAgent(device, state, env.get_action_num())
-# agent_x = RandomAgent(env.get_action_num())
+# agent = RandomAgent(env.get_action_num())
 
 for i_episode in range(num_episodes + 1):
     state = env.reset()
@@ -92,8 +94,8 @@ for i_episode in range(num_episodes + 1):
     #     torch.save(agent.policy_net.state_dict(), "./weights/agent_x_policy.pt")
     #     torch.save(agent.target_net.state_dict(), "./weights/agent_x_target.pt")
 
-# replay_manager = ReplayManager()
-# replay_manager.save_to_file(training_states)
+replay_manager = ReplayManager()
+replay_manager.save_to_file(training_states)
 
 # plot_reward(show_result=True)
 plt.ioff()
